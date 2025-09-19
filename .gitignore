@@ -1,0 +1,9 @@
+/target
+.direnv/
+.cache/
+result/
+
+.env
+.env.*
+!.env.example
+
