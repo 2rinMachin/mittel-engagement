@@ -26,7 +26,7 @@ async fn main() -> anyhow::Result<()> {
         posts: Arc::new(posts_client),
     });
 
-    let app = crate::http::app(state.clone()).with_state(state);
+    let app = crate::http::app().with_state(state);
 
     let host = env::var("HOST").unwrap_or("0.0.0.0".to_owned());
     let port = env::var("PORT").unwrap_or("8080".to_owned());

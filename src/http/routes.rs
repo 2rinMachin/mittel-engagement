@@ -75,7 +75,7 @@ async fn create_event(
 ))]
 struct ApiDoc;
 
-pub fn build_router(state: Arc<AppState>) -> axum::Router<Arc<AppState>> {
+pub fn build_router() -> axum::Router<Arc<AppState>> {
     let internal_token = std::env::var("INTERNAL_TOKEN").expect("INTERNAL_TOKEN not found");
 
     let private_router = OpenApiRouter::with_openapi(ApiDoc::openapi())
