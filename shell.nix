@@ -2,6 +2,7 @@
   mkShell,
 
   mittel-engagement,
+  awscli2,
   sqlx-cli,
 }:
 mkShell {
@@ -10,6 +11,7 @@ mkShell {
   ];
 
   packages = [
+    awscli2
     sqlx-cli
   ];
 
