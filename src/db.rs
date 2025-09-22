@@ -1,23 +1,29 @@
 use anyhow::anyhow;
 use async_trait::async_trait;
+use serde::Deserialize;
 use sqlx::{MySqlPool, mysql::MySqlPoolOptions};
 
 use crate::domain::{Event, EventKind};
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Deserialize)]
 pub struct CreateEventRequest {
-    user_id: Option<String>,
-    post_id: String,
-    kind: EventKind,
+    pub post_id: String,
+    pub kind: EventKind,
 }
 
 #[async_trait]
 pub trait EventRepository: Send + Sync {
-    async fn find_all_events(&self) -> anyhow::Result<Vec<Event>>;
+    async fn find_events(
+        &self,
+        user_id: &Option<String>,
+        post_id: &Option<String>,
+    ) -> anyhow::Result<Vec<Event>>;
 
-    async fn find_event_by_id(&self, id: i64) -> anyhow::Result<Option<Event>>;
-
-    async fn create_event(&self, event: CreateEventRequest) -> anyhow::Result<i64>;
+    async fn create_event(
+        &self,
+        event: CreateEventRequest,
+        user_id: Option<String>,
+    ) -> anyhow::Result<i64>;
 }
 
 #[derive(Clone)]
@@ -38,26 +44,11 @@ impl MySql {
 
 #[async_trait]
 impl EventRepository for MySql {
-    async fn find_all_events(&self) -> anyhow::Result<Vec<Event>> {
-        Ok(sqlx::query_as!(
-            Event,
-            r#"
-            SELECT
-                id,
-                user_id,
-                post_id,
-                kind as "kind: EventKind",
-                timestamp
-            FROM events
-            ORDER BY timestamp
-            "#
-        )
-        .fetch_all(&self.pool)
-        .await
-        .map_err(|e| anyhow!(e))?)
-    }
-
-    async fn find_event_by_id(&self, id: i64) -> anyhow::Result<Option<Event>> {
+    async fn find_events(
+        &self,
+        user_id: &Option<String>,
+        post_id: &Option<String>,
+    ) -> anyhow::Result<Vec<Event>> {
         Ok(sqlx::query_as!(
             Event,
             r#"
@@ -67,22 +58,31 @@ impl EventRepository for MySql {
                 post_id,
                 kind as "kind: EventKind",
                 timestamp
-            from events where id = ?
+            from events
+            where (? is null or user_id = ?)
+                and (? is null or post_id = ?)
             "#,
-            id
+            user_id,
+            user_id,
+            post_id,
+            post_id
         )
-        .fetch_optional(&self.pool)
+        .fetch_all(&self.pool)
         .await
         .map_err(|e| anyhow!(e))?)
     }
 
-    async fn create_event(&self, event: CreateEventRequest) -> anyhow::Result<i64> {
+    async fn create_event(
+        &self,
+        event: CreateEventRequest,
+        user_id: Option<String>,
+    ) -> anyhow::Result<i64> {
         let rec = sqlx::query!(
             r#"
             insert into events (user_id, post_id, kind, timestamp)
             values (?, ?, ?, ?)
             "#,
-            event.user_id,
+            user_id,
             event.post_id,
             event.kind,
             chrono::offset::Utc::now()

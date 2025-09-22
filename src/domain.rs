@@ -1,8 +1,10 @@
 use chrono::{DateTime, Utc};
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
+use utoipa::ToSchema;
 
-#[derive(Debug, Clone, Copy, Hash, PartialEq, Eq, sqlx::Type, Serialize, utoipa::ToSchema)]
-#[sqlx(type_name = "event_kind", rename_all = "lowercase")]
+#[derive(Debug, Clone, Copy, Hash, PartialEq, Eq, sqlx::Type, Serialize, Deserialize, ToSchema)]
+#[sqlx(type_name = "event_kind", rename_all = "snake_case")]
+#[serde(rename_all = "snake_case")]
 pub enum EventKind {
     View,
     Like,
