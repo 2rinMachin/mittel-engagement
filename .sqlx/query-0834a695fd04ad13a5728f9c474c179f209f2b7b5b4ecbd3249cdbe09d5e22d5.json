@@ -1,0 +1,44 @@
+{
+  "db_name": "MySQL",
+  "query": "\n            select\n                coalesce(sum(kind = 'view'), 0) as views,\n                coalesce(sum(kind = 'like'), 0) as likes,\n                coalesce(sum(kind = 'share'), 0) as shares\n            from events\n            where (? is null or user_id = ?)\n                and (? is null or post_id = ?)\n            ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "views",
+        "type_info": {
+          "type": "NewDecimal",
+          "flags": "NOT_NULL | BINARY",
+          "max_size": 24
+        }
+      },
+      {
+        "ordinal": 1,
+        "name": "likes",
+        "type_info": {
+          "type": "NewDecimal",
+          "flags": "NOT_NULL | BINARY",
+          "max_size": 24
+        }
+      },
+      {
+        "ordinal": 2,
+        "name": "shares",
+        "type_info": {
+          "type": "NewDecimal",
+          "flags": "NOT_NULL | BINARY",
+          "max_size": 24
+        }
+      }
+    ],
+    "parameters": {
+      "Right": 4
+    },
+    "nullable": [
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "0834a695fd04ad13a5728f9c474c179f209f2b7b5b4ecbd3249cdbe09d5e22d5"
+}
