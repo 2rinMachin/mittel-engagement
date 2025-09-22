@@ -13,8 +13,6 @@ COPY . .
 RUN cargo build --release
 
 FROM debian:bookworm-slim AS runtime
-RUN apt update
-RUN apt install openssl -y
 WORKDIR /app
 COPY --from=builder /app/target/release/mittel-engagement /usr/local/bin
 
