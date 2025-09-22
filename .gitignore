@@ -1,7 +1,7 @@
 /target
 .direnv/
 .cache/
-result/
+/result
 
 .env
 .env.*

@@ -1,9 +1,14 @@
 {
   mkShell,
 
+  mittel-engagement,
   sqlx-cli,
 }:
 mkShell {
+  inputsFrom = [
+    mittel-engagement
+  ];
+
   packages = [
     sqlx-cli
   ];
