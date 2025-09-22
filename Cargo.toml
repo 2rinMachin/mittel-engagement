@@ -1,5 +1,6 @@
 [package]
 name = "mittel-engagement"
+description = "API for managing engagement on the Mittel blogging platform."
 version = "0.1.0"
 edition = "2024"
 

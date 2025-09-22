@@ -1,10 +1,10 @@
 {
-  pkgs ? import <nixpkgs> { },
+  mkShell,
+
+  sqlx-cli,
 }:
-pkgs.mkShell {
-  packages = with pkgs; [
-    openssl
-    pkg-config
+mkShell {
+  packages = [
     sqlx-cli
   ];
 
