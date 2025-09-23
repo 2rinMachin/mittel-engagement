@@ -1,4 +1,6 @@
 use async_trait::async_trait;
+use axum::http::HeaderMap;
+use reqwest::{Client, ClientBuilder, IntoUrl, Url};
 
 #[async_trait]
 pub trait PostsApi: Send + Sync {
@@ -7,13 +9,21 @@ pub trait PostsApi: Send + Sync {
 
 #[derive(Debug, Clone)]
 pub struct PostsMicroserviceClient {
-    secret_token: String,
+    base_url: Url,
+    client: Client,
 }
 
 impl PostsMicroserviceClient {
-    pub fn new<S: Into<String>>(token: S) -> Self {
+    pub fn new(base_url: impl IntoUrl, token: impl Into<String>) -> Self {
+        let mut client_headers = HeaderMap::new();
+        client_headers.insert("X-Secret-Token", token.into().parse().unwrap());
+
         Self {
-            secret_token: token.into(),
+            base_url: base_url.into_url().unwrap(),
+            client: ClientBuilder::new()
+                .default_headers(client_headers)
+                .build()
+                .unwrap(),
         }
     }
 }

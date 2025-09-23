@@ -1,4 +1,6 @@
 use async_trait::async_trait;
+use axum::http::HeaderMap;
+use reqwest::{Client, ClientBuilder, IntoUrl, Url};
 use thiserror::Error;
 
 use crate::http::ApiError;
@@ -35,13 +37,21 @@ pub trait UsersApi: Send + Sync {
 
 #[derive(Debug, Clone)]
 pub struct UsersMicroserviceClient {
-    secret_token: String,
+    base_url: Url,
+    client: Client,
 }
 
 impl UsersMicroserviceClient {
-    pub fn new<S: Into<String>>(token: S) -> Self {
+    pub fn new(base_url: impl IntoUrl, token: impl Into<String>) -> Self {
+        let mut client_headers = HeaderMap::new();
+        client_headers.insert("X-Secret-Token", token.into().parse().unwrap());
+
         Self {
-            secret_token: token.into(),
+            base_url: base_url.into_url().unwrap(),
+            client: ClientBuilder::new()
+                .default_headers(client_headers)
+                .build()
+                .unwrap(),
         }
     }
 }
@@ -49,6 +59,8 @@ impl UsersMicroserviceClient {
 #[async_trait]
 impl UsersApi for UsersMicroserviceClient {
     async fn validate_auth(&self, authorization: &str) -> anyhow::Result<bool> {
+        let url = self.base_url.join("/users/");
+
         todo!("apurate joaquin");
     }
 

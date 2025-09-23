@@ -31,24 +31,23 @@ async fn get_hello(State(_state): State<Arc<AppState>>) -> impl IntoResponse {
     StatusResponse::with_detail(StatusCode::OK, Some("It works!".to_owned()))
 }
 
-#[derive(Debug, Clone, IntoParams, Deserialize)]
-#[into_params(parameter_in = Query)]
-struct EventQuery {
-    post_id: Option<String>,
-    user_id: Option<String>,
-}
-
 #[utoipa::path(get, path = "/events", params(EventQuery), description = "Returns all events", responses((status = OK, body = [Event])))]
 async fn get_events(
     Query(query): Query<EventQuery>,
     State(state): State<Arc<AppState>>,
 ) -> ApiResult<Json<Vec<Event>>> {
-    dbg!(&query);
     let events = state
         .repo
         .find_events(&query.user_id, &query.post_id)
         .await?;
     Ok(Json(events))
+}
+
+#[derive(Debug, Clone, IntoParams, Deserialize)]
+#[into_params(parameter_in = Query)]
+struct EventQuery {
+    post_id: Option<String>,
+    user_id: Option<String>,
 }
 
 #[utoipa::path(post, path = "/events", description = "Records a new event", responses((status = CREATED, body = StatusResponse)))]
