@@ -87,6 +87,6 @@ impl IntoResponse for ApiError {
     }
 }
 
-pub fn app() -> axum::Router<Arc<AppState>> {
-    routes::build_router()
+pub fn app(secret_token: &str) -> axum::Router<Arc<AppState>> {
+    routes::build_router(secret_token)
 }

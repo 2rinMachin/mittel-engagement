@@ -14,7 +14,7 @@ use utoipa_axum::{router::OpenApiRouter, routes};
 use utoipa_swagger_ui::SwaggerUi;
 
 use crate::{
-    db::{CreateEventRequest, EventSummary},
+    db::CreateEventRequest,
     domain::Event,
     http::{
         ApiError, ApiResult, StatusResponse, extractors::RequestUser,
@@ -50,18 +50,6 @@ struct EventQuery {
     user_id: Option<String>,
 }
 
-#[utoipa::path(get, path = "/events/summary", params(EventQuery), description = "Returns a summary of events", responses((status = OK, body = EventSummary)))]
-async fn get_event_summary(
-    Query(query): Query<EventQuery>,
-    State(state): State<Arc<AppState>>,
-) -> ApiResult<Json<EventSummary>> {
-    let events = state
-        .repo
-        .find_event_summary(&query.user_id, &query.post_id)
-        .await?;
-    Ok(Json(events))
-}
-
 #[utoipa::path(post, path = "/events", description = "Records a new event", responses((status = CREATED, body = StatusResponse)))]
 async fn create_event(
     State(state): State<Arc<AppState>>,
@@ -86,24 +74,21 @@ async fn create_event(
 ))]
 struct ApiDoc;
 
-pub fn build_router() -> axum::Router<Arc<AppState>> {
-    let internal_token =
-        std::env::var("INTERNAL_SECRET_TOKEN").expect("INTERNAL_SECRET_TOKEN not found");
-
+pub fn build_router(secret_token: &str) -> axum::Router<Arc<AppState>> {
     let private_router = OpenApiRouter::with_openapi(ApiDoc::openapi())
         .routes(routes!(get_events))
-        .routes(routes!(get_event_summary))
-        .route_layer(InternalAuthLayer::new(internal_token));
+        .route_layer(InternalAuthLayer::new(secret_token));
 
     let public_router = OpenApiRouter::with_openapi(ApiDoc::openapi())
         .routes(routes!(get_hello))
         .routes(routes!(create_event));
 
     let (router, api) = OpenApiRouter::with_openapi(ApiDoc::openapi())
+        // Private endpoints
         .merge(private_router)
         .merge(public_router)
         .fallback(get_not_found)
-        .route_layer(
+        .layer(
             ServiceBuilder::new()
                 .layer(TraceLayer::new_for_http())
                 .layer(CorsLayer::permissive()),

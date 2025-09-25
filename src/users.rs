@@ -1,11 +1,14 @@
+use std::collections::HashMap;
+
+use anyhow::anyhow;
 use async_trait::async_trait;
-use axum::http::HeaderMap;
-use reqwest::{Client, ClientBuilder, IntoUrl, Url};
+use reqwest::{Client, ClientBuilder, IntoUrl, StatusCode, Url};
+use serde::Deserialize;
 use thiserror::Error;
 
 use crate::http::ApiError;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Deserialize)]
 pub struct User {
     pub id: String,
 }
@@ -16,7 +19,7 @@ pub enum FetchUserError {
     InvalidAuthorization,
 
     #[error("Unknown: {_0}")]
-    Unknown(anyhow::Error),
+    Unknown(#[from] anyhow::Error),
 }
 
 impl From<FetchUserError> for ApiError {
@@ -30,8 +33,6 @@ impl From<FetchUserError> for ApiError {
 
 #[async_trait]
 pub trait UsersApi: Send + Sync {
-    async fn validate_auth(&self, authorization: &str) -> anyhow::Result<bool>;
-
     async fn fetch_user(&self, authorization: &str) -> Result<Option<User>, FetchUserError>;
 }
 
@@ -42,30 +43,37 @@ pub struct UsersMicroserviceClient {
 }
 
 impl UsersMicroserviceClient {
-    pub fn new(base_url: impl IntoUrl, token: impl Into<String>) -> Self {
-        let mut client_headers = HeaderMap::new();
-        client_headers.insert("X-Secret-Token", token.into().parse().unwrap());
-
+    pub fn new(base_url: impl IntoUrl) -> Self {
         Self {
             base_url: base_url.into_url().unwrap(),
-            client: ClientBuilder::new()
-                .default_headers(client_headers)
-                .build()
-                .unwrap(),
+            client: ClientBuilder::new().build().unwrap(),
         }
     }
 }
 
 #[async_trait]
 impl UsersApi for UsersMicroserviceClient {
-    async fn validate_auth(&self, authorization: &str) -> anyhow::Result<bool> {
-        let url = self.base_url.join("/users/");
-
-        todo!("apurate joaquin");
-    }
-
     async fn fetch_user(&self, authorization: &str) -> Result<Option<User>, FetchUserError> {
-        todo!("apurate joaquin");
+        let url = self.base_url.join("/introspect").unwrap();
+
+        let mut body = HashMap::new();
+        println!("auth: {authorization}");
+        body.insert("token", authorization);
+
+        let res = self
+            .client
+            .post(url)
+            .json(&body)
+            .send()
+            .await
+            .map_err(|e| anyhow!(e))?;
+
+        if res.status() == StatusCode::BAD_REQUEST {
+            Ok(None)
+        } else {
+            let user = res.json().await.map_err(|e| anyhow!(e))?;
+            Ok(Some(user))
+        }
     }
 }
 
@@ -74,10 +82,6 @@ pub struct MockUsersClient;
 
 #[async_trait]
 impl UsersApi for MockUsersClient {
-    async fn validate_auth(&self, authorization: &str) -> anyhow::Result<bool> {
-        Ok(authorization.len() >= 10)
-    }
-
     async fn fetch_user(&self, authorization: &str) -> Result<Option<User>, FetchUserError> {
         if authorization.len() >= 10 {
             Ok(Some(User {
