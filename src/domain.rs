@@ -19,3 +19,12 @@ pub struct Event {
     pub kind: EventKind,
     pub timestamp: DateTime<Utc>,
 }
+
+#[derive(Debug, Clone, Serialize, utoipa::ToSchema)]
+pub struct Device {
+    pub id: i64,
+    pub os: Option<String>,
+    pub browser: Option<String>,
+    pub language: Option<String>,
+    pub screen_resolution: Option<String>,
+}

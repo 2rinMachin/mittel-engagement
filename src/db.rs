@@ -1,23 +1,23 @@
 use anyhow::anyhow;
 use async_trait::async_trait;
-use num_traits::cast::ToPrimitive;
-use serde::{Deserialize, Serialize};
+use serde::Deserialize;
 use sqlx::{MySqlPool, mysql::MySqlPoolOptions};
-use utoipa::ToSchema;
 
-use crate::domain::{Event, EventKind};
+use crate::domain::{Device, Event, EventKind};
+
+#[derive(Debug, Clone, Deserialize)]
+pub struct DeviceRequest {
+    pub os: Option<String>,
+    pub browser: Option<String>,
+    pub screen_resolution: Option<String>,
+    pub language: Option<String>,
+}
 
 #[derive(Debug, Clone, Deserialize)]
 pub struct CreateEventRequest {
     pub post_id: String,
     pub kind: EventKind,
-}
-
-#[derive(Debug, Clone, ToSchema, Serialize)]
-pub struct EventSummary {
-    views: usize,
-    likes: usize,
-    shares: usize,
+    pub device: Option<DeviceRequest>,
 }
 
 #[async_trait]
@@ -28,17 +28,13 @@ pub trait EventRepository: Send + Sync {
         post_id: &Option<String>,
     ) -> anyhow::Result<Vec<Event>>;
 
-    async fn find_event_summary(
-        &self,
-        user_id: &Option<String>,
-        post_id: &Option<String>,
-    ) -> anyhow::Result<EventSummary>;
-
     async fn create_event(
         &self,
         event: CreateEventRequest,
         user_id: Option<String>,
     ) -> anyhow::Result<i64>;
+
+    async fn find_devices(&self) -> anyhow::Result<Vec<Device>>;
 }
 
 #[derive(Clone)]
@@ -89,48 +85,39 @@ impl EventRepository for MySql {
         .map_err(|e| anyhow!(e))?)
     }
 
-    async fn find_event_summary(
-        &self,
-        user_id: &Option<String>,
-        post_id: &Option<String>,
-    ) -> anyhow::Result<EventSummary> {
-        let rec = sqlx::query!(
-            r#"
-            select
-                coalesce(sum(kind = 'view'), 0) as views,
-                coalesce(sum(kind = 'like'), 0) as likes,
-                coalesce(sum(kind = 'share'), 0) as shares
-            from events
-            where (? is null or user_id = ?)
-                and (? is null or post_id = ?)
-            "#,
-            user_id,
-            user_id,
-            post_id,
-            post_id
-        )
-        .fetch_one(&self.pool)
-        .await
-        .map_err(|e| anyhow!(e))?;
-
-        Ok(EventSummary {
-            views: rec.views.to_usize().unwrap(),
-            likes: rec.likes.to_usize().unwrap(),
-            shares: rec.shares.to_usize().unwrap(),
-        })
-    }
-
     async fn create_event(
         &self,
         event: CreateEventRequest,
         user_id: Option<String>,
     ) -> anyhow::Result<i64> {
+        let device_id: Option<i64> = if let Some(device) = event.device {
+            let rec = sqlx::query_as!(
+                Event,
+                r#"
+                insert into events (user_id, post_id, kind, timestamp)
+                values (?, ?, ?, ?)
+                "#,
+                device.os,
+                device.browser,
+                device.screen_resolution,
+                device.language,
+            )
+            .execute(&self.pool)
+            .await
+            .map_err(|e| anyhow!(e))?;
+
+            Some(rec.last_insert_id().try_into().unwrap())
+        } else {
+            None
+        };
+
         let rec = sqlx::query!(
             r#"
-            insert into events (user_id, post_id, kind, timestamp)
-            values (?, ?, ?, ?)
+            insert into events (user_id, device_id, post_id, kind, timestamp)
+            values (?, ?, ?, ?, ?)
             "#,
             user_id,
+            device_id,
             event.post_id,
             event.kind,
             chrono::offset::Utc::now()
@@ -140,5 +127,12 @@ impl EventRepository for MySql {
         .map_err(|e| anyhow!(e))?;
 
         Ok(rec.last_insert_id().try_into().unwrap())
+    }
+
+    async fn find_devices(&self) -> anyhow::Result<Vec<Device>> {
+        Ok(sqlx::query_as!(Device, "select * from devices")
+            .fetch_all(&self.pool)
+            .await
+            .map_err(|e| anyhow!(e))?)
     }
 }

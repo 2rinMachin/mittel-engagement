@@ -15,7 +15,7 @@ use utoipa_swagger_ui::SwaggerUi;
 
 use crate::{
     db::CreateEventRequest,
-    domain::Event,
+    domain::{Device, Event},
     http::{
         ApiError, ApiResult, StatusResponse, extractors::RequestUser,
         middleware::InternalAuthLayer, state::AppState,
@@ -40,6 +40,12 @@ async fn get_events(
         .repo
         .find_events(&query.user_id, &query.post_id)
         .await?;
+    Ok(Json(events))
+}
+
+#[utoipa::path(get, path = "/devices", params(EventQuery), description = "Returns all recorded devices", responses((status = OK, body = [Device])))]
+async fn get_devices(State(state): State<Arc<AppState>>) -> ApiResult<Json<Vec<Device>>> {
+    let events = state.repo.find_devices().await?;
     Ok(Json(events))
 }
 
@@ -77,7 +83,8 @@ struct ApiDoc;
 pub fn build_router(secret_token: &str) -> axum::Router<Arc<AppState>> {
     let private_router = OpenApiRouter::with_openapi(ApiDoc::openapi())
         .routes(routes!(get_events))
-        .route_layer(InternalAuthLayer::new(secret_token));
+        .routes(routes!(get_devices))
+        .route_layer(InternalAuthLayer::new(internal_token));
 
     let public_router = OpenApiRouter::with_openapi(ApiDoc::openapi())
         .routes(routes!(get_hello))

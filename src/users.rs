@@ -46,7 +46,7 @@ impl UsersMicroserviceClient {
     pub fn new(base_url: impl IntoUrl) -> Self {
         Self {
             base_url: base_url.into_url().unwrap(),
-            client: ClientBuilder::new().build().unwrap(),
+            client: Client::new(),
         }
     }
 }
