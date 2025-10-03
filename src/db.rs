@@ -7,10 +7,10 @@ use crate::domain::{Device, Event, EventKind};
 
 #[derive(Debug, Clone, Deserialize)]
 pub struct DeviceRequest {
-    pub os: Option<String>,
-    pub browser: Option<String>,
-    pub screen_resolution: Option<String>,
-    pub language: Option<String>,
+    pub os: String,
+    pub browser: String,
+    pub screen_resolution: String,
+    pub language: String,
 }
 
 #[derive(Debug, Clone, Deserialize)]
@@ -68,6 +68,7 @@ impl EventRepository for MySql {
             select
                 id,
                 user_id,
+                device_id,
                 post_id,
                 kind as "kind: EventKind",
                 timestamp
@@ -94,8 +95,9 @@ impl EventRepository for MySql {
             let rec = sqlx::query_as!(
                 Event,
                 r#"
-                insert into events (user_id, post_id, kind, timestamp)
+                insert into devices (os, browser, screen_resolution, language)
                 values (?, ?, ?, ?)
+                on duplicate key update id = last_insert_id(id)
                 "#,
                 device.os,
                 device.browser,

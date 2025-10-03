@@ -1,9 +1,9 @@
 create table devices (
   id int primary key auto_increment,
-  os varchar(50),
-  browser varchar(50),
-  screen_resolution varchar(50),
-  language varchar(50),
+  os varchar(50) not null,
+  browser varchar(50) not null,
+  screen_resolution varchar(50) not null,
+  language varchar(50) not null,
   unique (os, browser, screen_resolution, language)
 );
 

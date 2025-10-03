@@ -84,7 +84,7 @@ pub fn build_router(secret_token: &str) -> axum::Router<Arc<AppState>> {
     let private_router = OpenApiRouter::with_openapi(ApiDoc::openapi())
         .routes(routes!(get_events))
         .routes(routes!(get_devices))
-        .route_layer(InternalAuthLayer::new(internal_token));
+        .route_layer(InternalAuthLayer::new(secret_token));
 
     let public_router = OpenApiRouter::with_openapi(ApiDoc::openapi())
         .routes(routes!(get_hello))

@@ -14,6 +14,7 @@ pub enum EventKind {
 #[derive(Debug, Clone, Serialize, utoipa::ToSchema)]
 pub struct Event {
     pub id: i64,
+    pub device_id: Option<i32>,
     pub user_id: Option<String>,
     pub post_id: String,
     pub kind: EventKind,
