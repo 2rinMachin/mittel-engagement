@@ -2,10 +2,11 @@ use anyhow::anyhow;
 use async_trait::async_trait;
 use serde::Deserialize;
 use sqlx::{MySqlPool, mysql::MySqlPoolOptions};
+use utoipa::ToSchema;
 
 use crate::domain::{Device, Event, EventKind};
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Deserialize, ToSchema)]
 pub struct DeviceRequest {
     pub os: String,
     pub browser: String,
@@ -13,7 +14,7 @@ pub struct DeviceRequest {
     pub language: String,
 }
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Deserialize, ToSchema)]
 pub struct CreateEventRequest {
     pub post_id: String,
     pub kind: EventKind,

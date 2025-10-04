@@ -56,7 +56,7 @@ struct EventQuery {
     user_id: Option<String>,
 }
 
-#[utoipa::path(post, path = "/events", description = "Records a new event", responses((status = CREATED, body = StatusResponse)))]
+#[utoipa::path(post, path = "/events", request_body = CreateEventRequest, description = "Records a new event", responses((status = CREATED, body = StatusResponse)))]
 async fn create_event(
     State(state): State<Arc<AppState>>,
     user: Option<RequestUser>,
