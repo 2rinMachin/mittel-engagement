@@ -1,6 +1,6 @@
 {
   "db_name": "MySQL",
-  "query": "\n            select\n                id,\n                user_id,\n                post_id,\n                kind as \"kind: EventKind\",\n                timestamp\n            from events\n            where (? is null or user_id = ?)\n                and (? is null or post_id = ?)\n            ",
+  "query": "\n            select\n                id,\n                user_id,\n                device_id,\n                post_id,\n                kind as \"kind: EventKind\",\n                timestamp\n            from events\n            where (? is null or user_id = ?)\n                and (? is null or post_id = ?)\n            ",
   "describe": {
     "columns": [
       {
@@ -23,6 +23,15 @@
       },
       {
         "ordinal": 2,
+        "name": "device_id",
+        "type_info": {
+          "type": "Long",
+          "flags": "MULTIPLE_KEY",
+          "max_size": 11
+        }
+      },
+      {
+        "ordinal": 3,
         "name": "post_id",
         "type_info": {
           "type": "VarString",
@@ -31,7 +40,7 @@
         }
       },
       {
-        "ordinal": 3,
+        "ordinal": 4,
         "name": "kind: EventKind",
         "type_info": {
           "type": "String",
@@ -40,7 +49,7 @@
         }
       },
       {
-        "ordinal": 4,
+        "ordinal": 5,
         "name": "timestamp",
         "type_info": {
           "type": "Timestamp",
@@ -55,10 +64,11 @@
     "nullable": [
       false,
       true,
+      true,
       false,
       false,
       false
     ]
   },
-  "hash": "d677c8d69820ba4fb3ea3e6e42def48dfd151394fcb07136c387868b070ac5e5"
+  "hash": "edd3efbfc2a6a54871ed7dfe5a413ad3928046841e094b71182fc88f7e21ddbd"
 }

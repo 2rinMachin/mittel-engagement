@@ -1,0 +1,12 @@
+{
+  "db_name": "MySQL",
+  "query": "\n            insert into events (user_id, device_id, post_id, kind, timestamp)\n            values (?, ?, ?, ?, ?)\n            ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 5
+    },
+    "nullable": []
+  },
+  "hash": "32fee94d041609a908d37d2bac7b14f22a7d6018e0eac8f55af415e56b05d3da"
+}

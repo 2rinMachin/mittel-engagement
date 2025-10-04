@@ -1,0 +1,12 @@
+{
+  "db_name": "MySQL",
+  "query": "\n                insert into devices (os, browser, screen_resolution, language)\n                values (?, ?, ?, ?)\n                on duplicate key update id = last_insert_id(id)\n                ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 4
+    },
+    "nullable": []
+  },
+  "hash": "2f7ad3924139318d504c57ae0a203cb65686f5fc6814b3a74e65806c05f57538"
+}
