@@ -1,6 +1,8 @@
+use std::collections::HashMap;
+
+use anyhow::anyhow;
 use async_trait::async_trait;
-use axum::http::HeaderMap;
-use reqwest::{Client, ClientBuilder, IntoUrl, Url};
+use reqwest::{Client, IntoUrl, StatusCode, Url};
 
 #[async_trait]
 pub trait PostsApi: Send + Sync {
@@ -14,16 +16,10 @@ pub struct PostsMicroserviceClient {
 }
 
 impl PostsMicroserviceClient {
-    pub fn new(base_url: impl IntoUrl, token: impl Into<String>) -> Self {
-        let mut client_headers = HeaderMap::new();
-        client_headers.insert("X-Secret-Token", token.into().parse().unwrap());
-
+    pub fn new(base_url: impl IntoUrl) -> Self {
         Self {
             base_url: base_url.into_url().unwrap(),
-            client: ClientBuilder::new()
-                .default_headers(client_headers)
-                .build()
-                .unwrap(),
+            client: Client::new(),
         }
     }
 }
@@ -31,7 +27,15 @@ impl PostsMicroserviceClient {
 #[async_trait]
 impl PostsApi for PostsMicroserviceClient {
     async fn validate_post_id(&self, post_id: &str) -> anyhow::Result<bool> {
-        todo!("apurate diego");
+        let url = self
+            .base_url
+            .join("/articles/")
+            .and_then(|url| url.join(post_id))
+            .unwrap();
+
+        let res = self.client.get(url).send().await.map_err(|e| anyhow!(e))?;
+
+        Ok(res.status() == StatusCode::OK)
     }
 }
 

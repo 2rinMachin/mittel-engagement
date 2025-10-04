@@ -57,7 +57,6 @@ impl UsersApi for UsersMicroserviceClient {
         let url = self.base_url.join("/introspect").unwrap();
 
         let mut body = HashMap::new();
-        println!("auth: {authorization}");
         body.insert("token", authorization);
 
         let res = self

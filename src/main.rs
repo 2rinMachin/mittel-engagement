@@ -9,7 +9,10 @@ use std::{env, sync::Arc};
 use tokio::net::TcpListener;
 
 use crate::{
-    db::MySql, http::state::AppState, posts::MockPostsClient, users::UsersMicroserviceClient,
+    db::MySql,
+    http::state::AppState,
+    posts::{MockPostsClient, PostsMicroserviceClient},
+    users::UsersMicroserviceClient,
 };
 
 #[tokio::main]
@@ -20,9 +23,10 @@ async fn main() -> anyhow::Result<()> {
     let mysql = MySql::new(&database_url).await?;
 
     let users_url = env::var("USERS_URL").expect("USERS_URL not found");
-    let users_client = UsersMicroserviceClient::new(&users_url);
+    let articles_url = env::var("ARTICLES_URL").expect("ARTICLES_URL not found");
 
-    let posts_client = MockPostsClient;
+    let users_client = UsersMicroserviceClient::new(&users_url);
+    let posts_client = PostsMicroserviceClient::new(&articles_url);
 
     let state = Arc::new(AppState {
         repo: Arc::new(mysql),
