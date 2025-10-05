@@ -92,12 +92,12 @@ struct ApiDoc;
 pub fn build_router(secret_token: &str) -> axum::Router<Arc<AppState>> {
     let private_router = OpenApiRouter::with_openapi(ApiDoc::openapi())
         .routes(routes!(get_events))
-        .routes(routes!(get_event_summary))
         .routes(routes!(get_devices))
         .route_layer(InternalAuthLayer::new(secret_token));
 
     let public_router = OpenApiRouter::with_openapi(ApiDoc::openapi())
         .routes(routes!(get_hello))
+        .routes(routes!(get_event_summary))
         .routes(routes!(create_event));
 
     let (router, api) = OpenApiRouter::with_openapi(ApiDoc::openapi())
