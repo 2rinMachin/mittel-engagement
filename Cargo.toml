@@ -14,7 +14,6 @@ env_logger = "0.11.8"
 futures-util = "0.3.31"
 log = "0.4.28"
 reqwest = { version = "0.12.23", features = ["json", "rustls-tls"], default-features = false }
-num-traits = "0.2.19"
 serde = "1.0.225"
 serde_json = "1.0.145"
 sqlx = { version = "0.8.6", features = ["bigdecimal", "chrono", "mysql", "runtime-tokio", "tls-rustls-aws-lc-rs", "uuid"] }
@@ -28,3 +27,5 @@ utoipa-axum = "0.2.0"
 utoipa-swagger-ui = { version = "9.0.2", features = ["axum", "vendored"] }
 utoipa-swagger-ui-vendored = "0.1.2"
 uuid = { version = "1.18.1", features = ["serde"] }
+bigdecimal = "0.4.8"
+num-traits = "0.2.19"

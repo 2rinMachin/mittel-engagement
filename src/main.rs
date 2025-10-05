@@ -9,9 +9,7 @@ use std::{env, sync::Arc};
 use tokio::net::TcpListener;
 
 use crate::{
-    db::MySql,
-    http::state::AppState,
-    posts::{MockPostsClient, PostsMicroserviceClient},
+    db::MySql, http::state::AppState, posts::PostsMicroserviceClient,
     users::UsersMicroserviceClient,
 };
 

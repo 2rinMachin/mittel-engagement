@@ -22,6 +22,13 @@ pub struct Event {
 }
 
 #[derive(Debug, Clone, Serialize, utoipa::ToSchema)]
+pub struct EventSummary {
+    pub views: usize,
+    pub likes: usize,
+    pub shares: usize,
+}
+
+#[derive(Debug, Clone, Serialize, utoipa::ToSchema)]
 pub struct Device {
     pub id: i64,
     pub os: Option<String>,

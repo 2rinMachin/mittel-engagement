@@ -1412,6 +1412,7 @@ dependencies = [
  "anyhow",
  "async-trait",
  "axum",
+ "bigdecimal",
  "chrono",
  "env_logger",
  "futures-util",

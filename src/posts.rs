@@ -1,5 +1,3 @@
-use std::collections::HashMap;
-
 use anyhow::anyhow;
 use async_trait::async_trait;
 use reqwest::{Client, IntoUrl, StatusCode, Url};

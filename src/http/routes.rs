@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 use axum::{
     Json,
-    extract::{Query, State},
+    extract::{Path, Query, State},
     http::StatusCode,
     response::IntoResponse,
 };
@@ -15,7 +15,7 @@ use utoipa_swagger_ui::SwaggerUi;
 
 use crate::{
     db::CreateEventRequest,
-    domain::{Device, Event},
+    domain::{Device, Event, EventSummary},
     http::{
         ApiError, ApiResult, StatusResponse, extractors::RequestUser,
         middleware::InternalAuthLayer, state::AppState,
@@ -41,6 +41,15 @@ async fn get_events(
         .find_events(&query.user_id, &query.post_id)
         .await?;
     Ok(Json(events))
+}
+
+#[utoipa::path(get, path = "/events/{post_id}", description = "Gets a summary of events for the given post.", responses((status = OK, body = EventSummary)))]
+async fn get_event_summary(
+    Path(post_id): Path<String>,
+    State(state): State<Arc<AppState>>,
+) -> ApiResult<Json<EventSummary>> {
+    let summary = state.repo.find_event_summary(&post_id).await?;
+    Ok(Json(summary))
 }
 
 #[utoipa::path(get, path = "/devices", params(EventQuery), description = "Returns all recorded devices", responses((status = OK, body = [Device])))]
@@ -83,6 +92,7 @@ struct ApiDoc;
 pub fn build_router(secret_token: &str) -> axum::Router<Arc<AppState>> {
     let private_router = OpenApiRouter::with_openapi(ApiDoc::openapi())
         .routes(routes!(get_events))
+        .routes(routes!(get_event_summary))
         .routes(routes!(get_devices))
         .route_layer(InternalAuthLayer::new(secret_token));
 
